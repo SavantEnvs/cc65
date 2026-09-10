@@ -1,0 +1,19 @@
+# Mayhem target `od65` — the object-file dumper, one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/od65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths and runaway expansions become normal per-exec findings.
+# `od65 --dump-all <object>`: the fuzz file is a ca65/cc65 object file; --dump-all walks every section
+# (header, options, files, segments, imports, exports, debug symbols, line info, scopes, spans).
+# Input delivery is a bare `@@` (no filepath:, no cwd:) — the tool does not dispatch on the file
+# extension — and every output goes to a RELATIVE path in Mayhem's writable default cwd.
+project: savantenvs/cc65
+target: od65
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/od65/testsuite
+
+cmds:
+  - cmd: /mayhem/od65 --dump-all @@
+    timeout: 5

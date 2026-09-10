@@ -1,0 +1,21 @@
+=================================================================
+==10==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50c0000000bc at pc 0x571a937a0799 bp 0x7fff12094770 sp 0x7fff12094768
+WRITE of size 1 at 0x50c0000000bc thread T0
+    #0 0x571a937a0798 in ReadPCXFile /mayhem/mayhem/build/src/sp65/pcx.c:487:25
+    #1 0x571a9379c638 in OptRead /mayhem/mayhem/build/src/sp65/main.c:258:13
+    #2 0x571a9379c638 in main /mayhem/mayhem/build/src/sp65/main.c:427:21
+    #3 0x7fd78297dca7 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #4 0x7fd78297dd64 in __libc_start_main csu/../csu/libc-start.c:360:3
+    #5 0x571a936af3d0 in _start (/mayhem/sp65+0x3f3d0) (BuildId: cdeb641b1dc9ab5bcbf16a7efd092b3ba9ce141b)
+
+0x50c0000000bc is located 0 bytes after 124-byte region [0x50c000000040,0x50c0000000bc)
+allocated by thread T0 here:
+    #0 0x571a9374f203 in malloc (/mayhem/sp65+0xdf203) (BuildId: cdeb641b1dc9ab5bcbf16a7efd092b3ba9ce141b)
+    #1 0x571a937aa0aa in xmalloc /mayhem/mayhem/build/src/common/xmalloc.c:61:13
+    #2 0x571a93793b05 in NewBitmap /mayhem/mayhem/build/src/sp65/bitmap.c:64:9
+    #3 0x571a9379ea47 in ReadPCXFile /mayhem/mayhem/build/src/sp65/pcx.c:370:9
+    #4 0x571a9379c638 in OptRead /mayhem/mayhem/build/src/sp65/main.c:258:13
+    #5 0x571a9379c638 in main /mayhem/mayhem/build/src/sp65/main.c:427:21
+    #6 0x7fd78297dca7 in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow /mayhem/mayhem/build/src/sp65/pcx.c:487:25 in ReadPCXFile

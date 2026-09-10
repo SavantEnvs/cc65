@@ -1,0 +1,20 @@
+# Mayhem target `ld65` — the linker (object-file input), one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/ld65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths and runaway expansions become normal per-exec findings.
+# `ld65 -t none -o out.bin -m out.map --dbgfile out.dbg <object>`: the fuzz file is a ca65/cc65 object
+# file linked with the built-in `none` target (its none.cfg comes from the compiled-in /mayhem/cfg);
+# -m and --dbgfile also drive the map-file and debug-file writers.
+# Input delivery is a bare `@@` (no filepath:, no cwd:) — the tool does not dispatch on the file
+# extension — and every output goes to a RELATIVE path in Mayhem's writable default cwd.
+project: savantenvs/cc65
+target: ld65
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/ld65/testsuite
+
+cmds:
+  - cmd: /mayhem/ld65 -t none -o out.bin -m out.map --dbgfile out.dbg @@
+    timeout: 5

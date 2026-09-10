@@ -1,0 +1,19 @@
+# Mayhem target `co65` — the o65 -> assembler converter, one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/co65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths and runaway expansions become normal per-exec findings.
+# `co65 -o out.s <o65>`: the fuzz file is an o65 executable/module (the format ld65 emits for
+# `format = o65` configs; header, options, text/data segments, relocation tables, imports, exports).
+# Input delivery is a bare `@@` (no filepath:, no cwd:) — the tool does not dispatch on the file
+# extension — and every output goes to a RELATIVE path in Mayhem's writable default cwd.
+project: savantenvs/cc65
+target: co65
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/co65/testsuite
+
+cmds:
+  - cmd: /mayhem/co65 -o out.s @@
+    timeout: 5

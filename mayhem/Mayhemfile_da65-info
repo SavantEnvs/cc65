@@ -1,0 +1,21 @@
+# Mayhem target `da65-info` — the 6502 disassembler (info-file input), one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/da65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths and runaway expansions become normal per-exec findings.
+# `da65 -i <info> --comments 4 -o out.s <info>`: the fuzz file is the da65 INFO FILE (the text
+# format with GLOBAL/RANGE/LABEL/SEGMENT/ASMINC sections, parsed by da65/infofile.c + scanner.c),
+# and the SAME file is then handed over as the binary to disassemble, so one input drives both the
+# info parser and the disassembler. Complements target `da65`, which fuzzes the binary side only.
+# Input delivery is a bare `@@` (no filepath:, no cwd:) — the tool does not dispatch on the file
+# extension — and every output goes to a RELATIVE path in Mayhem's writable default cwd.
+project: savantenvs/cc65
+target: da65-info
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/da65-info/testsuite
+
+cmds:
+  - cmd: /mayhem/da65 -i @@ --comments 4 -o out.s @@
+    timeout: 5

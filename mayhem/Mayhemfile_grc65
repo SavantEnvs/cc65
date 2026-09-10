@@ -1,0 +1,20 @@
+# Mayhem target `grc65` — the GEOS resource compiler, one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/grc65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths and runaway expansions become normal per-exec findings.
+# `grc65 -o out.h -s out.s <source>`: the fuzz file is a .grc resource source (HEADER / MEMORY /
+# VLIR sections). Output names are given BEFORE the input because grc65 processes each file argument
+# the moment it sees it.
+# Input delivery is a bare `@@` (no filepath:, no cwd:) — the tool does not dispatch on the file
+# extension — and every output goes to a RELATIVE path in Mayhem's writable default cwd.
+project: savantenvs/cc65
+target: grc65
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/grc65/testsuite
+
+cmds:
+  - cmd: /mayhem/grc65 -o out.h -s out.s @@
+    timeout: 5

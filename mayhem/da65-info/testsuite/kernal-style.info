@@ -1,0 +1,24 @@
+# da65 info file exercising most directives (see doc/da65.sgml)
+GLOBAL {
+    STARTADDR   $0200;
+    PAGELENGTH  0;
+    CPU         "6502";
+    COMMENTS    2;
+    HEXOFFS     yes;
+    LABELBREAK  8;
+    NEWLINEAFTERJMP yes;
+    NEWLINEAFTERRTS yes;
+};
+SEGMENT { START $0200; END $02FF; NAME "code"; };
+RANGE { START $0200; END $0208; TYPE Code; };
+RANGE { START $0209; END $0210; TYPE ByteTable; UNIT 4; };
+RANGE { START $0211; END $0220; TYPE WordTable; };
+RANGE { START $0221; END $0230; TYPE AddrTable; NAME "vectors"; };
+RANGE { START $0231; END $0240; TYPE RtsTable; };
+RANGE { START $0241; END $0250; TYPE TextTable; COMMENT "text"; };
+RANGE { START $0251; END $0260; TYPE DWordTable; UNIT 8; };
+RANGE { START $0261; END $0270; TYPE DByteTable; };
+LABEL { NAME "start";  ADDR $0200; };
+LABEL { NAME "table";  ADDR $0209; SIZE 8; COMMENT "a table"; };
+LABEL { NAME "zpvec";  ADDR $90;   SIZE 3; };
+LABEL { NAME "hanmi";  ADDR $FFFA; };

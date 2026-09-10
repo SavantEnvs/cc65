@@ -1,0 +1,22 @@
+# Mayhem target `ld65-cfg` — the linker (linker-config input), one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/ld65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths and runaway expansions become normal per-exec findings.
+# `ld65 -C <cfg> -o out.bin -m out.map /mayhem/mayhem/ld65-cfg/fixture.o`: the fuzz file is the
+# LINKER CONFIGURATION (the MEMORY/SEGMENTS/FEATURES/SYMBOLS/FILES/FORMATS text language parsed by
+# ld65/config.c + cfgexpr.c + scanner.c). The object file is a tiny committed fixture that is only
+# READ from the baked image (mayhem-lint: ok-image-path — a read, not a scratch write; the image is
+# mounted read-only and that is fine for reads). Complements target `ld65`, which fuzzes the object.
+# Input delivery is a bare `@@` (no filepath:, no cwd:) — the tool does not dispatch on the file
+# extension — and every output goes to a RELATIVE path in Mayhem's writable default cwd.
+project: savantenvs/cc65
+target: ld65-cfg
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/ld65-cfg/testsuite
+
+cmds:
+  - cmd: /mayhem/ld65 -C @@ -o out.bin -m out.map /mayhem/mayhem/ld65-cfg/fixture.o
+    timeout: 5

@@ -1,0 +1,30 @@
+# Mayhem target `sp65` — the sprite/bitmap converter, one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/sp65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths become normal per-exec findings.
+# `sp65 -r in.pcx -c raw -w out.bin`: the fuzz file is the PCX image sp65 reads (sp65/pcx.c: header,
+# RLE planes, 1/4/8 bpp x 1 plane and 8 bpp x 3/4 planes, trailing 256-colour palette), converted
+# with the `raw` generator and written to a RELATIVE path in the writable default cwd.
+# sp65 TRULY dispatches on the input file's extension (sp65/input.c maps ".pcx" -> the PCX reader and
+# refuses a name it cannot classify), so — per the raw-target rules — the input is staged under a
+# RELATIVE filepath with that extension; still no cwd:, nothing under /tmp or /dev/shm.
+project: savantenvs/cc65
+target: sp65
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/sp65/testsuite
+
+cmds:
+  # Run #1 (2026-09-10) died in Mayhem's runner ("mayhem-fuzz entered a restart loop ... return code 254",
+  # "try setting MFUZZ_COMPAT_LEVEL") and truncated a seed at the 8192-byte default. Remedies per
+  # docs/netnew-worker-prompt.md ("PIN what auto-resolution discovers") and SPEC §6.2 item 13: the
+  # converted sprite goes to /tmp (not the cwd the runner stages into), the runner compat level is
+  # pinned, and max_length covers the largest committed seed.
+  - cmd: /mayhem/sp65 -r @@ -c raw -w /tmp/sp65-out.bin
+    filepath: in.pcx
+    timeout: 5
+    max_length: 65536
+    env:
+      MFUZZ_COMPAT_LEVEL: '1'

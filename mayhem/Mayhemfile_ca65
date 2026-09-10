@@ -1,0 +1,19 @@
+# Mayhem target `ca65` — the 6502 macro assembler, one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/ca65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths and runaway expansions become normal per-exec findings.
+# `ca65 -l out.lst -o out.o <source>`: the fuzz file is the assembler source. -l also drives the
+# listing generator (listing.c) so that output path is covered too.
+# Input delivery is a bare `@@` (no filepath:, no cwd:) — the tool does not dispatch on the file
+# extension — and every output goes to a RELATIVE path in Mayhem's writable default cwd.
+project: savantenvs/cc65
+target: ca65
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/ca65/testsuite
+
+cmds:
+  - cmd: /mayhem/ca65 -l out.lst -o out.o @@
+    timeout: 5

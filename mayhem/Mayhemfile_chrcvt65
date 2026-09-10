@@ -1,0 +1,20 @@
+# Mayhem target `chrcvt65` — the Borland BGI vector-font converter, one of cc65's public command-line tools (src/Makefile PROGS),
+# built sanitized (ASan+UBSan halting; exactly two benign UBSan checks relaxed, see mayhem/build.sh)
+# + SanCov edge instrumentation + DWARF-3 by mayhem/build.sh at /mayhem/chrcvt65.
+# Raw (non-libFuzzer, process-per-input) target — the tool runs exactly as shipped, one fresh process
+# per input, so exit()-on-error paths and runaway expansions become normal per-exec findings.
+# `chrcvt65 <font>`: the fuzz file is a Borland BGI .chr stroke font. chrcvt65 has no output-name
+# option: it writes <input>.tch next to the input AFTER the whole header check + vector conversion,
+# so all parsing is covered even if that final write is refused.
+# Input delivery is a bare `@@` (no filepath:, no cwd:) — the tool does not dispatch on the file
+# extension — and every output goes to a RELATIVE path in Mayhem's writable default cwd.
+project: savantenvs/cc65
+target: chrcvt65
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/chrcvt65/testsuite
+
+cmds:
+  - cmd: /mayhem/chrcvt65 @@
+    timeout: 5
